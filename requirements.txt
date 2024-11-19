@@ -1,0 +1,7 @@
+streamlit==1.25.0
+pandas==1.5.3
+pandas-profiling
+sweetviz==2.1.4
+torch==2.0.1
+transformers==4.33.3
+pydantic==1.10.12
