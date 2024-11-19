@@ -21,8 +21,8 @@ def generate_pandas_report(df):
         for col in df.select_dtypes(include=['object']).columns:
             df[col] = df[col].astype('category')
 
-        # Generate the Pandas Profiling report
-        profile = ProfileReport(df, title="Pandas Profiling Report", explorative=True)
+        # Generate the Pandas Profiling report with 'minimal' set to reduce memory usage
+        profile = ProfileReport(df, title="Pandas Profiling Report", explorative=True, minimal=True)
         
         # Save the report to a temporary file
         temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".html")
@@ -70,8 +70,18 @@ if uploaded_file:
     if df.empty:
         st.error("The dataset is empty. Please upload a valid CSV file.")
     else:
+        # Display a warning if the dataset is too large
+        if df.shape[0] > 100000:  # Adjust the threshold based on memory constraints
+            st.warning("The dataset is large. Only a sample will be used for EDA.")
+
+            # Sample the dataset for large files
+            df_sample = df.sample(frac=0.1, random_state=42)  # Taking 10% sample, adjust as needed
+        else:
+            df_sample = df
+
+        # Show dataset preview
         st.write("### Dataset Preview")
-        st.write(df.head())
+        st.write(df_sample.head())
 
         # EDA Options
         st.write("### Generate EDA Report")
@@ -79,9 +89,9 @@ if uploaded_file:
         if st.button("Generate EDA Report"):
             try:
                 if eda_choice == "Pandas Profiling":
-                    report_path = generate_pandas_report(df)
+                    report_path = generate_pandas_report(df_sample)
                 else:
-                    report_path = generate_sweetviz_report(df)
+                    report_path = generate_sweetviz_report(df_sample)
                 
                 if report_path:
                     # Embed the HTML report into the app
@@ -112,4 +122,4 @@ if uploaded_file:
 
         # Data Summary
         st.write("### Summary Statistics")
-        st.write(df.describe())
+        st.write(df_sample.describe())
